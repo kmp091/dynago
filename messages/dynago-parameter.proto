@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "github.com/kmp091/dynago/messages";
+
+package dynago;
+
+//later repeated message types for list types
+message ValueTypeParameter {
+    oneof parameter_oneof {
+        int32 integerValue = 1;
+        string stringValue = 2;
+        double doubleValue = 3;
+        bool boolValue = 4;
+    }
+}

@@ -1,0 +1,5 @@
+package dynago
+
+func main() {
+
+}
