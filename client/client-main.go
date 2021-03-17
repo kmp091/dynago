@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	serverAddress = "http://localhost:4323"
+	serverAddress = "localhost:4323"
 )
 
 func main() {
