@@ -35,5 +35,11 @@ func main() {
 
 	response, err := client.Process(ctx, &request)
 	resultMap := response.GetResults()
-	fmt.Println(resultMap["FinalResult"])
+	finalResultAnyObj, ok := resultMap["FinalResult"]
+
+	if ok {
+		doubleParameterObj := pb.ValueTypeParameter{}
+		finalResultAnyObj.UnmarshalTo(&doubleParameterObj)
+		fmt.Println(doubleParameterObj.GetDoubleValue())
+	}
 }

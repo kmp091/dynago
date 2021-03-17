@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/kmp091/dynago/messages"
@@ -18,7 +19,7 @@ func main() {
 	flag.Parse()
 	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
-		fmt.Printf("Unable to listen to port %d\n", *port)
+		log.Fatalf("Unable to listen to port %d\n", *port)
 		return
 	}
 

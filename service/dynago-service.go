@@ -13,7 +13,10 @@ type DynagoService struct {
 
 func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) (*pb.DynagoResponse, error) {
 	//TODO: run plugins
-	var response pb.DynagoResponse
+	response := pb.DynagoResponse{
+		Results: make(map[string]*anypb.Any),
+	}
+
 	var err error
 	doubleParameter := pb.ValueTypeParameter_DoubleValue{DoubleValue: 5.5}
 	response.Results["FinalResult"], err = anypb.New(&pb.ValueTypeParameter{ParameterOneof: &doubleParameter})
