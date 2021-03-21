@@ -42,10 +42,9 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 		return returnVal, ok
 	}
 
-	//TODO: run plugins
-	activePlugin, pluginErr := plugin.Open("plugins/multiplication-plugin.so")
+	activePlugin, pluginErr := plugin.Open("../plugins/multiplication-plugin.so")
 	if pluginErr != nil {
-		log.Fatal("Plugin load failure")
+		log.Fatalf("Plugin load failure: %s", pluginErr)
 	}
 
 	sym, symErr := activePlugin.Lookup("Process")

@@ -27,6 +27,12 @@ func main() {
 	detailString := pb.ValueTypeParameter_StringValue{StringValue: "This is the thing you process."}
 	parameters["Detail"], err = anypb.New(&pb.ValueTypeParameter{ParameterOneof: &detailString})
 
+	mul1 := pb.ValueTypeParameter_IntegerValue{IntegerValue: 5}
+	parameters["Mul1"], err = anypb.New(&pb.ValueTypeParameter{ParameterOneof: &mul1})
+
+	mul2 := pb.ValueTypeParameter_IntegerValue{IntegerValue: 12}
+	parameters["Mul2"], err = anypb.New(&pb.ValueTypeParameter{ParameterOneof: &mul2})
+
 	request := pb.DynagoRequest{
 		Parameters: parameters,
 	}
@@ -35,11 +41,11 @@ func main() {
 
 	response, err := client.Process(ctx, &request)
 	resultMap := response.GetResults()
-	finalResultAnyObj, ok := resultMap["FinalResult"]
+	finalResultAnyObj, ok := resultMap["MultiplicationResult"]
 
 	if ok {
-		doubleParameterObj := pb.ValueTypeParameter{}
-		finalResultAnyObj.UnmarshalTo(&doubleParameterObj)
-		fmt.Println(doubleParameterObj.GetDoubleValue())
+		intParameterObj := pb.ValueTypeParameter{}
+		finalResultAnyObj.UnmarshalTo(&intParameterObj)
+		fmt.Println(intParameterObj.GetIntegerValue())
 	}
 }
