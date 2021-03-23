@@ -32,7 +32,17 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 			if err == nil {
 				switch p := parameterValue.(type) {
 				case *pb.ValueTypeParameter:
-					returnVal = p.GetParameterOneof()
+					oneofValue := p.GetParameterOneof()
+					switch oneofType := oneofValue.(type) {
+					case *pb.ValueTypeParameter_IntegerValue:
+						returnVal = oneofType.IntegerValue
+					case *pb.ValueTypeParameter_BoolValue:
+						returnVal = oneofType.BoolValue
+					case *pb.ValueTypeParameter_DoubleValue:
+						returnVal = oneofType.DoubleValue
+					case *pb.ValueTypeParameter_StringValue:
+						returnVal = oneofType.StringValue
+					}
 				default:
 					returnVal = parameterValue
 				}
@@ -48,9 +58,11 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 	}
 
 	sym, symErr := activePlugin.Lookup("Process")
-	pluginImpl, ok := sym.(DynagoPlugin)
+	pluginImpl, ok := sym.(func(func(string) (interface{}, bool)) *map[string]interface{})
 
-	if symErr != nil || !ok {
+	if symErr != nil {
+		log.Fatalf("Plugin could not load symbol Process: %s", symErr)
+	} else if !ok {
 		log.Fatal("Plugin does not implement Process()")
 	}
 
@@ -58,7 +70,7 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 		Results: make(map[string]*anypb.Any),
 	}
 
-	pluginResult := pluginImpl.Process(accessor)
+	pluginResult := pluginImpl(accessor)
 
 	var err error
 	//marshal pluginResult to anypb.Any
@@ -77,6 +89,12 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 			stringValue := pb.ValueTypeParameter_StringValue{StringValue: v}
 			message = &pb.ValueTypeParameter{ParameterOneof: &stringValue}
 		case int:
+			intValue := pb.ValueTypeParameter_IntegerValue{IntegerValue: int32(v)}
+			message = &pb.ValueTypeParameter{ParameterOneof: &intValue}
+		case int32:
+			intValue := pb.ValueTypeParameter_IntegerValue{IntegerValue: v}
+			message = &pb.ValueTypeParameter{ParameterOneof: &intValue}
+		case int64:
 			intValue := pb.ValueTypeParameter_IntegerValue{IntegerValue: int32(v)}
 			message = &pb.ValueTypeParameter{ParameterOneof: &intValue}
 		case bool:
