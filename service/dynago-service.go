@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log"
+	"path"
 	"plugin"
 
 	pb "github.com/kmp091/dynago/messages"
@@ -52,13 +53,16 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 		return returnVal, ok
 	}
 
-	activePlugin, pluginErr := plugin.Open("../plugins/multiplication-plugin.so")
+	pluginParentDir := "../plugins"
+	pluginPath := path.Join(pluginParentDir, "multiplication-plugin.so")
+
+	activePlugin, pluginErr := plugin.Open(pluginPath)
 	if pluginErr != nil {
 		log.Fatalf("Plugin load failure: %s", pluginErr)
 	}
 
-	sym, symErr := activePlugin.Lookup("Process")
-	pluginImpl, ok := sym.(func(func(string) (interface{}, bool)) *map[string]interface{})
+	sym, symErr := activePlugin.Lookup("Implementation")
+	pluginImpl, ok := sym.(DynagoPlugin)
 
 	if symErr != nil {
 		log.Fatalf("Plugin could not load symbol Process: %s", symErr)
@@ -70,7 +74,7 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 		Results: make(map[string]*anypb.Any),
 	}
 
-	pluginResult := pluginImpl(accessor)
+	pluginResult := pluginImpl.Process(accessor)
 
 	var err error
 	//marshal pluginResult to anypb.Any

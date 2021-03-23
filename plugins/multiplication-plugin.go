@@ -1,6 +1,8 @@
 package main
 
-func Process(parameterAccessor func(string) (interface{}, bool)) *map[string]interface{} {
+type Plugin struct{}
+
+func (p Plugin) Process(parameterAccessor func(string) (interface{}, bool)) *map[string]interface{} {
 	firstOperand, isFirstOperandAvailable := parameterAccessor("Mul1")
 	secondOperand, isSecondOperandAvailable := parameterAccessor("Mul2")
 
@@ -15,3 +17,5 @@ func Process(parameterAccessor func(string) (interface{}, bool)) *map[string]int
 
 	return &resultMap
 }
+
+var Implementation Plugin
