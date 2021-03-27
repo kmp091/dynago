@@ -1,4 +1,4 @@
-module github.com/kmp091/dynago
+module github.com/kmp091/dynago/messages
 
 go 1.16
 

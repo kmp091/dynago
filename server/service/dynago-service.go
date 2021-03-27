@@ -53,8 +53,8 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 		return returnVal, ok
 	}
 
-	pluginParentDir := "../plugins"
-	pluginPath := path.Join(pluginParentDir, "multiplication-plugin.so")
+	pluginParentDir, pluginName := "./plugins", "multiplication-plugin.so"
+	pluginPath := path.Join(pluginParentDir, pluginName)
 
 	activePlugin, pluginErr := plugin.Open(pluginPath)
 	if pluginErr != nil {
@@ -74,6 +74,7 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 		Results: make(map[string]*anypb.Any),
 	}
 
+	log.Printf("Now running plugin %v\n", pluginName)
 	pluginResult := pluginImpl.Process(accessor)
 
 	var err error

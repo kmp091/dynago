@@ -7,7 +7,7 @@ import (
 	"net"
 
 	"github.com/kmp091/dynago/messages"
-	"github.com/kmp091/dynago/service"
+	"github.com/kmp091/dynago/server/service"
 	"google.golang.org/grpc"
 )
 
@@ -17,7 +17,7 @@ var (
 
 func main() {
 	flag.Parse()
-	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("Unable to listen to port %d\n", *port)
 		return
