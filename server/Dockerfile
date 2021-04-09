@@ -1,6 +1,6 @@
-FROM golang
+FROM golang as builder
 
-RUN mkdir /app
+WORKDIR /app
 COPY . /app
 
 WORKDIR /app/plugins
@@ -10,6 +10,14 @@ RUN ./go-plugin-build.sh
 
 WORKDIR /app
 
-RUN go build -o ./dynago-server .
+RUN CGO_ENABLED=1 GOOS=linux go build -o ./dynago-server .
 
-CMD [ "/app/dynago-server" ]
+# actual binary runner
+FROM debian
+
+WORKDIR /app
+
+COPY --from=builder /app/dynago-server .
+COPY --from=builder /app/plugins/*.so ./plugins/
+
+CMD [ "./dynago-server" ]
