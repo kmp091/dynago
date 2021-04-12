@@ -1,0 +1,6 @@
+services:
+    dynago:
+        build: .
+        ports:
+            - "4323:4323"
+
