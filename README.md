@@ -5,13 +5,12 @@ The request and response objects are Protobuf-serialized (as you would) and tran
 ## Server 
 - processing requests with arbitrary parameters, response has arbitrary data as well
 - use Go plugins for dynamically adding processing logic
-- accept any message type in the parameters
+- accept any message type in the parameters (this comes with some repercussions for serialization)
+- add dynamic server logic with go plugins
 - Dockerized so you can do:
 ```bash
-docker build . -t dynago
-docker run -p 4323:4323 dynago
+docker-compose up --build
 ```
-(Port numbers are currently hardcoded. I plan to do a docker compose file soon enough)
 
 ## Client
 - Go lang based sample gRPC Client

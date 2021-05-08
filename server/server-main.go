@@ -12,7 +12,9 @@ import (
 )
 
 var (
-	port = flag.Int("port", 4323, "The server address in the format of host:port")
+	port      = flag.Int("port", 4323, "The server address in the format of host:port")
+	redisHost = flag.String("redis-host", "redis", "The host name for the Redis server")
+	redisPort = flag.Int("redis-port", 6379, "The port number for the Redis server")
 )
 
 func main() {
@@ -23,9 +25,17 @@ func main() {
 		return
 	}
 
-	server := service.DynagoService{}
+	server := service.DynagoService{
+		RedisHostName:   redisHost,
+		RedisPortNumber: redisPort,
+	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
+	//computation service
 	messages.RegisterDynagoServiceServer(grpcServer, &server)
+	//import service
+	//messages.RegisterDynagoServiceServer(grpcServer, &server)
 	grpcServer.Serve(listener)
+
+	log.Println("Started dynago server. Ready to accept requests.")
 }

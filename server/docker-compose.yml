@@ -1,6 +1,31 @@
+secrets:
+    acl_secret:
+        file: ${PWD}/redis/redis.acl
+    redis_secret:
+        file: ${PWD}/redis/redis_secret
+
 services:
     dynago:
-        build: .
+        build: 
+            context: .
+            args:
+                redis_host: "redis"
+                redis_port: "6379"
         ports:
             - "4323:4323"
+    redis:
+        image: "redis:alpine"
+        command: redis-server /usr/local/etc/redis/redis.conf
+        ports: 
+            - "6379:6379"
+        volumes:
+            - ${PWD}/redis/redis.conf:/usr/local/etc/redis/redis.conf
+            - ${PWD}/redis/redis-data:/usr/local/var/db/redis
+        environment:
+            - REDIS_REPLICATION_MODE=master
+        secrets:
+            - acl_secret
 
+volumes:
+    redis:
+        
