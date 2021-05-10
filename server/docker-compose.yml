@@ -10,14 +10,16 @@ services:
             context: .
             args:
                 redis_host: "redis"
-                redis_port: "6379"
+                redis_port: "6389"
         ports:
             - "4323:4323"
+        secrets:
+            - redis_secret
     redis:
         image: "redis:alpine"
         command: redis-server /usr/local/etc/redis/redis.conf
-        ports: 
-            - "6379:6379"
+        ports:
+            - "6389"
         volumes:
             - ${PWD}/redis/redis.conf:/usr/local/etc/redis/redis.conf
             - ${PWD}/redis/redis-data:/usr/local/var/db/redis
