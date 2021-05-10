@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	port      = flag.Int("port", 4323, "The server address in the format of host:port")
-	redisHost = flag.String("redis-host", "redis", "The host name for the Redis server")
-	redisPort = flag.Int("redis-port", 6379, "The port number for the Redis server")
+	port            = flag.Int("port", 4323, "The server address in the format of host:port")
+	redisHost       = flag.String("redis-host", "redis", "The host name for the Redis server")
+	redisPort       = flag.Int("redis-port", 6379, "The port number for the Redis server")
+	redisSecretPath = flag.String("redis-secret-path", "", "The file path for the password configured for the Redis server")
 )
 
 func main() {
@@ -28,6 +29,7 @@ func main() {
 	server := service.DynagoService{
 		RedisHostName:   redisHost,
 		RedisPortNumber: redisPort,
+		RedisSecretPath: redisSecretPath,
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
@@ -36,6 +38,4 @@ func main() {
 	//import service
 	//messages.RegisterDynagoServiceServer(grpcServer, &server)
 	grpcServer.Serve(listener)
-
-	log.Println("Started dynago server. Ready to accept requests.")
 }

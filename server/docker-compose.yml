@@ -13,6 +13,8 @@ services:
                 redis_port: "6389"
         ports:
             - "4323:4323"
+        environment: 
+            REDIS_SECRET: /run/secrets/redis_secret
         secrets:
             - redis_secret
     redis:

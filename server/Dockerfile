@@ -25,4 +25,4 @@ WORKDIR /app
 COPY --from=builder /app/dynago-server .
 COPY --from=builder /app/plugins/*.so ./plugins/
 
-CMD ./dynago-server -redis-host=${REDIS_HOST} -redis-port=${REDIS_PORT}
+CMD ./dynago-server -redis-host=${REDIS_HOST} -redis-port=${REDIS_PORT} -redis-secret-path=${REDIS_SECRET}

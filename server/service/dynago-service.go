@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"path"
 	"plugin"
@@ -23,17 +24,23 @@ type DynagoService struct {
 	pb.UnimplementedDynagoServiceServer
 	RedisHostName   *string
 	RedisPortNumber *int
+	RedisSecretPath *string
 }
 
-func AddSampleRedisKey(host *string, port *int) {
+func AddSampleRedisKey(host *string, port *int, secretPath *string) {
+	secret, secretErr := ioutil.ReadFile(*secretPath)
+	if secretErr != nil {
+		log.Fatal(secretErr)
+	}
+
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", *host, *port),
-		Password: "portugal_CUCUMBER_bleucheese",
+		Password: string(secret),
 		DB:       0, // use default DB
 	})
 
 	ctx := context.Background()
-	status := rdb.Set(ctx, "key", "value", 0)
+	status := rdb.Set(ctx, "key", "value2", 0)
 	_, err := status.Result()
 	if err != nil {
 		log.Fatal(err)
@@ -43,7 +50,7 @@ func AddSampleRedisKey(host *string, port *int) {
 func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) (*pb.DynagoResponse, error) {
 	//service level is responsible for unmarshaling and marshaling Protobuf layer
 
-	AddSampleRedisKey(s.RedisHostName, s.RedisPortNumber)
+	AddSampleRedisKey(s.RedisHostName, s.RedisPortNumber, s.RedisSecretPath)
 
 	accessor := func(key string) (interface{}, bool) {
 		pbValue, ok := request.Parameters[key]
