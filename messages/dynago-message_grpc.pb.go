@@ -99,3 +99,89 @@ var DynagoService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "dynago-message.proto",
 }
+
+// ImportPluginServiceClient is the client API for ImportPluginService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ImportPluginServiceClient interface {
+	Import(ctx context.Context, in *ImportPluginRequest, opts ...grpc.CallOption) (*ImportPluginResponse, error)
+}
+
+type importPluginServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewImportPluginServiceClient(cc grpc.ClientConnInterface) ImportPluginServiceClient {
+	return &importPluginServiceClient{cc}
+}
+
+func (c *importPluginServiceClient) Import(ctx context.Context, in *ImportPluginRequest, opts ...grpc.CallOption) (*ImportPluginResponse, error) {
+	out := new(ImportPluginResponse)
+	err := c.cc.Invoke(ctx, "/dynago.ImportPluginService/Import", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ImportPluginServiceServer is the server API for ImportPluginService service.
+// All implementations must embed UnimplementedImportPluginServiceServer
+// for forward compatibility
+type ImportPluginServiceServer interface {
+	Import(context.Context, *ImportPluginRequest) (*ImportPluginResponse, error)
+	mustEmbedUnimplementedImportPluginServiceServer()
+}
+
+// UnimplementedImportPluginServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedImportPluginServiceServer struct {
+}
+
+func (UnimplementedImportPluginServiceServer) Import(context.Context, *ImportPluginRequest) (*ImportPluginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Import not implemented")
+}
+func (UnimplementedImportPluginServiceServer) mustEmbedUnimplementedImportPluginServiceServer() {}
+
+// UnsafeImportPluginServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ImportPluginServiceServer will
+// result in compilation errors.
+type UnsafeImportPluginServiceServer interface {
+	mustEmbedUnimplementedImportPluginServiceServer()
+}
+
+func RegisterImportPluginServiceServer(s grpc.ServiceRegistrar, srv ImportPluginServiceServer) {
+	s.RegisterService(&ImportPluginService_ServiceDesc, srv)
+}
+
+func _ImportPluginService_Import_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportPluginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ImportPluginServiceServer).Import(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dynago.ImportPluginService/Import",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ImportPluginServiceServer).Import(ctx, req.(*ImportPluginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ImportPluginService_ServiceDesc is the grpc.ServiceDesc for ImportPluginService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ImportPluginService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "dynago.ImportPluginService",
+	HandlerType: (*ImportPluginServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Import",
+			Handler:    _ImportPluginService_Import_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "dynago-message.proto",
+}

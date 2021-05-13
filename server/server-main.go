@@ -26,16 +26,22 @@ func main() {
 		return
 	}
 
-	server := service.DynagoService{
+	var opts []grpc.ServerOption
+	grpcServer := grpc.NewServer(opts...)
+
+	computationService := service.DynagoService{
 		RedisHostName:   redisHost,
 		RedisPortNumber: redisPort,
 		RedisSecretPath: redisSecretPath,
 	}
-	var opts []grpc.ServerOption
-	grpcServer := grpc.NewServer(opts...)
-	//computation service
-	messages.RegisterDynagoServiceServer(grpcServer, &server)
-	//import service
-	//messages.RegisterDynagoServiceServer(grpcServer, &server)
+	messages.RegisterDynagoServiceServer(grpcServer, &computationService)
+
+	importService := service.ImportService{
+		RedisHostName:   redisHost,
+		RedisPortNumber: redisPort,
+		RedisSecretPath: redisSecretPath,
+	}
+	messages.RegisterImportPluginServiceServer(grpcServer, &importService)
+
 	grpcServer.Serve(listener)
 }

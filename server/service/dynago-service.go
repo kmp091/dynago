@@ -8,7 +8,6 @@ import (
 	"path"
 	"plugin"
 
-	redis "github.com/go-redis/redis/v8"
 	pb "github.com/kmp091/dynago/messages"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -27,30 +26,8 @@ type DynagoService struct {
 	RedisSecretPath *string
 }
 
-func AddSampleRedisKey(host *string, port *int, secretPath *string) {
-	secret, secretErr := ioutil.ReadFile(*secretPath)
-	if secretErr != nil {
-		log.Fatal(secretErr)
-	}
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", *host, *port),
-		Password: string(secret),
-		DB:       0, // use default DB
-	})
-
-	ctx := context.Background()
-	status := rdb.Set(ctx, "key", "value2", 0)
-	_, err := status.Result()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) (*pb.DynagoResponse, error) {
 	//service level is responsible for unmarshaling and marshaling Protobuf layer
-
-	AddSampleRedisKey(s.RedisHostName, s.RedisPortNumber, s.RedisSecretPath)
 
 	accessor := func(key string) (interface{}, bool) {
 		pbValue, ok := request.Parameters[key]

@@ -18,3 +18,16 @@ message DynagoResponse {
 service DynagoService {
     rpc Process (DynagoRequest) returns (DynagoResponse);
 }
+
+message ImportPluginRequest {
+    string Name = 1;
+    bytes Contents = 2;
+}
+
+message ImportPluginResponse {
+    string Error = 1;
+}
+
+service ImportPluginService {
+    rpc Import (ImportPluginRequest) returns (ImportPluginResponse); 
+}
