@@ -1,38 +1,58 @@
 package service
 
-import {
-	pb "github.com/kmp091/dynago/messages"
+import (
+	"context"
+	"log"
+	"os"
+	"os/exec"
+	"path"
+
 	redis "github.com/go-redis/redis/v8"
-}
+	pb "github.com/kmp091/dynago/messages"
+)
 
 type ImportService struct {
 	pb.UnimplementedImportPluginServiceServer
-	RedisHostName   *string
-	RedisPortNumber *int
-	RedisSecretPath *string
+	RedisClient *redis.Client
 }
 
-func AddSampleRedisKey(host *string, port *int, secretPath *string) {
-	secret, secretErr := ioutil.ReadFile(*secretPath)
-	if secretErr != nil {
-		log.Fatal(secretErr)
-	}
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", *host, *port),
-		Password: string(secret),
-		DB:       0, // use default DB
-	})
-
+func (s *ImportService) Save(pluginName string, pluginBinary []byte) error {
 	ctx := context.Background()
-	status := rdb.Set(ctx, "key", "value2", 0)
+	status := s.RedisClient.Set(ctx, pluginName, pluginBinary, 0)
 	_, err := status.Result()
-	if err != nil {
-		log.Fatal(err)
-	}
+	return err
 }
 
-func (s *ImportServer) Import(context.Context, *ImportPluginRequest) (*ImportPluginResponse, error) {
-	AddSampleRedisKey(s.RedisHostName, s.RedisPortNumber, s.RedisSecretPath)
-	return nil, status.Errorf(codes.Unimplemented, "method Import not implemented")
+func (s *ImportService) Import(ctx context.Context, request *pb.ImportPluginRequest) (*pb.ImportPluginResponse, error) {
+	//temporarily save in filesystem - plugins folder
+	tempDir, mkdirErr := os.MkdirTemp(".", "plugins-*")
+	if mkdirErr != nil {
+		log.Fatal("Error occurred creating a temporary directory", mkdirErr)
+	}
+
+	goFileName := path.Join(tempDir, request.Name+".go")
+	goFile, fileErr := os.Create(goFileName)
+
+	if fileErr != nil {
+		log.Fatal("Error occurred creating a script file", fileErr)
+	}
+
+	goFile.Write(request.Contents)
+	goFile.Close()
+	defer os.Remove(goFileName)
+
+	//use go build
+	buildOutputName := path.Join(tempDir, request.Name+".so")
+	exec.Command("go", "build", "-buildmode=plugin", "-o", buildOutputName, goFileName)
+	defer os.Remove(buildOutputName)
+	defer os.Remove(tempDir)
+
+	//read .so file
+	buildOutputBytes, readErr := os.ReadFile(buildOutputName)
+	if readErr != nil {
+		log.Fatal("Error occurred reading build output", readErr)
+	}
+
+	err := s.Save(request.Name, buildOutputBytes)
+	return &pb.ImportPluginResponse{}, err
 }

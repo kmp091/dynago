@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"plugin"
 
+	"github.com/go-redis/redis/v8"
 	pb "github.com/kmp091/dynago/messages"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -21,9 +21,13 @@ type DynagoPlugin interface {
 
 type DynagoService struct {
 	pb.UnimplementedDynagoServiceServer
-	RedisHostName   *string
-	RedisPortNumber *int
-	RedisSecretPath *string
+	RedisClient *redis.Client
+}
+
+func (s *DynagoService) ReadCache(key string) ([]byte, error) {
+	ctx := context.Background()
+	result := s.RedisClient.Get(ctx, key)
+	return result.Bytes()
 }
 
 func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) (*pb.DynagoResponse, error) {
@@ -58,8 +62,20 @@ func (s *DynagoService) Process(ctx context.Context, request *pb.DynagoRequest) 
 		return returnVal, ok
 	}
 
+	//future enhancement: plugin doesn't have byte array support
+	//maybe using go plugin is not the best idea
+	pluginData, redisGetError := s.ReadCache("multiplication-plugin")
+
+	if redisGetError != nil {
+		log.Fatal("Unable to get plugin from cache", redisGetError)
+	}
+
 	pluginParentDir, pluginName := "./plugins", "multiplication-plugin.so"
 	pluginPath := path.Join(pluginParentDir, pluginName)
+
+	pluginFile, _ := os.Create(pluginPath)
+	pluginFile.Write(pluginData)
+	pluginFile.Close()
 
 	activePlugin, pluginErr := plugin.Open(pluginPath)
 	if pluginErr != nil {

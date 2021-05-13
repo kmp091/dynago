@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/kmp091/dynago/messages"
 	"github.com/kmp091/dynago/server/service"
 	"google.golang.org/grpc"
@@ -26,20 +28,27 @@ func main() {
 		return
 	}
 
+	secret, secretErr := ioutil.ReadFile(*redisSecretPath)
+	if secretErr != nil {
+		log.Fatal(secretErr)
+	}
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", *redisHost, *redisPort),
+		Password: string(secret),
+		DB:       0, // use default DB
+	})
+
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 
 	computationService := service.DynagoService{
-		RedisHostName:   redisHost,
-		RedisPortNumber: redisPort,
-		RedisSecretPath: redisSecretPath,
+		RedisClient: redisClient,
 	}
 	messages.RegisterDynagoServiceServer(grpcServer, &computationService)
 
 	importService := service.ImportService{
-		RedisHostName:   redisHost,
-		RedisPortNumber: redisPort,
-		RedisSecretPath: redisSecretPath,
+		RedisClient: redisClient,
 	}
 	messages.RegisterImportPluginServiceServer(grpcServer, &importService)
 
